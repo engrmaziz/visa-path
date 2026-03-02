@@ -143,24 +143,38 @@ export function RoutePlannerView({ defaultPassport }: RoutePlannerProps) {
                                         <p className="text-sm text-[#8892A4] mt-1 max-w-xl">{result.reasoning || "Route optimized successfully."}</p>
                                     </div>
                                     <div className="flex gap-3 text-sm">
-                                        <div className="bg-[#4F8EF7]/20 text-[#4F8EF7] px-3 py-1.5 rounded-lg font-medium border border-[#4F8EF7]/30">Visas: {result.summary?.totalVisasNeeded || 0}</div>
-                                        <div className="bg-emerald-500/20 text-emerald-400 px-3 py-1.5 rounded-lg font-medium border border-emerald-500/30">Cost: {result.summary?.totalEstimatedCost || "$0"}</div>
+                                        <div className="bg-[#4F8EF7]/20 text-[#4F8EF7] px-3 py-1.5 rounded-lg font-medium border border-[#4F8EF7]/30">Visas: {result.visasRequired || 0}</div>
+                                        <div className="bg-emerald-500/20 text-emerald-400 px-3 py-1.5 rounded-lg font-medium border border-emerald-500/30">Cost: ${result.estimatedCost || 0}</div>
                                     </div>
                                 </div>
 
-                                <div className="flex items-center gap-4 overflow-x-auto pb-2 mt-2">
-                                    {result.optimizedRoute?.map((stop: any, idx: number) => (
-                                        <div key={idx} className="flex items-center shrink-0">
-                                            <div className="w-8 h-8 rounded-full bg-[#161B27] border border-white/20 flex items-center justify-center font-bold text-xs z-10 shrink-0">
-                                                {idx + 1}
+                                <div className="flex items-start gap-4 mx-[-24px] px-6 overflow-x-auto pb-4 mt-2">
+                                    {result.steps?.map((stop: any, idx: number) => (
+                                        <div key={idx} className="flex flex-col shrink-0 w-[240px]">
+                                            <div className="flex items-center shrink-0 mb-3">
+                                                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#4F8EF7] to-[#A78BFA] text-white flex items-center justify-center font-bold text-xs z-10 shrink-0 shadow-lg">
+                                                    {idx + 1}
+                                                </div>
+                                                <div className="ml-[-12px] pl-5 pr-4 py-1.5 bg-white/10 rounded-xl border border-white/20 whitespace-nowrap z-0">
+                                                    <p className="font-bold text-sm tracking-wide">{stop.country}</p>
+                                                </div>
+                                                {idx < result.steps.length - 1 && (
+                                                    <div className="flex-1 h-px bg-white/20 mx-2 ml-4 relative">
+                                                        <div className="absolute right-0 top-1/2 -translate-y-1/2 border-t-4 border-b-4 border-l-4 border-y-transparent border-l-white/40" />
+                                                    </div>
+                                                )}
                                             </div>
-                                            <div className="ml-[-12px] pl-5 pr-4 py-2 bg-white/5 rounded-xl border border-white/5 whitespace-nowrap min-w-[120px]">
-                                                <p className="font-bold text-sm tracking-wide">{stop.country}</p>
-                                                <p className="text-xs text-[#10B981] mt-0.5">{stop.entryType}</p>
+                                            <div className="bg-[#161B27] border border-white/5 rounded-xl p-4 shadow-sm h-full">
+                                                <div className="flex items-center justify-between mb-2">
+                                                    <span className={`text-[11px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-sm ${stop.visaStatus?.toLowerCase().includes('free') ? 'bg-[#10B981]/10 text-[#10B981]' : stop.visaStatus?.toLowerCase().includes('req') ? 'bg-[#EF4444]/10 text-[#EF4444]' : 'bg-[#F59E0B]/10 text-[#F59E0B]'}`}>
+                                                        {stop.visaStatus}
+                                                    </span>
+                                                    <span className="text-xs text-[#8892A4] font-medium">{stop.duration}</span>
+                                                </div>
+                                                <div className="bg-[#080B14] rounded-lg p-2.5 mt-3 border border-white/5">
+                                                    <p className="text-xs text-[#8892A4] leading-relaxed"><strong className="text-white">Tip:</strong> {stop.tips}</p>
+                                                </div>
                                             </div>
-                                            {idx < result.optimizedRoute.length - 1 && (
-                                                <div className="w-8 h-0.5 bg-dashed mx-1 opacity-20" />
-                                            )}
                                         </div>
                                     ))}
                                 </div>

@@ -26,9 +26,8 @@ Respond ONLY in valid JSON matches this exact TypeScript interface:
 }
 
 export const buildRouteOptimizerPrompt = (passport: string, destinations: string[], goal: string) => {
-    return `You are a travel route optimizer. Passport: ${passport}. Destinations: ${destinations.join(', ')}. Goal: ${goal}. Return the optimal visit order to ${goal}.
-Respond ONLY in valid JSON matching this interface:
-{ reasoning: string, optimizedRoute: [{ country: string, countryCode: string, entryType: string, maxStay: string, visaCost: string, notes: string }], summary: { totalVisasNeeded: number, totalEstimatedCost: string, recommendedDays: number } }`
+    return `You are a visa expert. Given a ${passport} passport and destinations ${destinations.join(', ')}, optimize the travel route to ${goal}. 
+Return JSON with exactly this structure: { "optimizedRoute": string[], "visasRequired": number, "estimatedCost": number, "reasoning": string, "steps": [{ "country": string, "visaStatus": string, "duration": string, "tips": string }] }`
 }
 
 export const buildUpgradeRoadmapPrompt = (passport: string, goal: string) => {

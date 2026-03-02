@@ -15,7 +15,15 @@ const navItems = [
     { name: "Settings", href: "/dashboard/settings", icon: Settings },
 ]
 
-export function Sidebar() {
+interface SidebarProps {
+    user?: {
+        full_name: string
+        email: string
+        plan: string
+    } | null
+}
+
+export function Sidebar({ user }: SidebarProps) {
     const pathname = usePathname()
 
     return (
@@ -54,17 +62,17 @@ export function Sidebar() {
             <div className="p-4 border-t border-[#1E2738]">
                 <div className="p-3 rounded-xl bg-[#0D1117] border border-white/5 flex flex-col gap-2 hover:border-white/10 transition-colors cursor-pointer">
                     <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#4F8EF7] to-[#A78BFA] flex items-center justify-center font-bold text-white shadow-inner">
-                            J
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#4F8EF7] to-[#A78BFA] flex items-center justify-center font-bold text-white shadow-inner uppercase">
+                            {user?.full_name?.charAt(0) || 'U'}
                         </div>
                         <div className="flex flex-col overflow-hidden">
-                            <span className="text-sm font-semibold truncate text-white">John Doe</span>
-                            <span className="text-xs text-[#8892A4] truncate">john@example.com</span>
+                            <span className="text-sm font-semibold truncate text-white">{user?.full_name || 'Loading...'}</span>
+                            <span className="text-xs text-[#8892A4] truncate">{user?.email || 'Loading...'}</span>
                         </div>
                     </div>
                     <div className="flex items-center justify-between text-xs mt-1 px-1">
                         <span className="text-[#8892A4]">Plan</span>
-                        <span className="bg-[#4F8EF7]/20 text-[#4F8EF7] px-2 py-0.5 rounded-full font-medium">Pro</span>
+                        <span className="bg-[#4F8EF7]/20 text-[#4F8EF7] px-2 py-0.5 rounded-full font-medium capitalize">{user?.plan || 'Free'}</span>
                     </div>
                 </div>
             </div>

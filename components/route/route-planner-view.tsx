@@ -1,0 +1,174 @@
+"use client"
+
+import { useState, useRef, useEffect } from "react"
+import { motion, AnimatePresence } from "framer-motion"
+import { Plus, GripVertical, Settings2, MapPin, X, Loader2, Save } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import * as maptilersdk from "@maptiler/sdk"
+import "@maptiler/sdk/dist/maptiler-sdk.css"
+
+interface RoutePlannerProps {
+    defaultPassport: string
+}
+
+export function RoutePlannerView({ defaultPassport }: RoutePlannerProps) {
+    const [destinations, setDestinations] = useState(["Japan", "South Korea"])
+    const [newDest, setNewDest] = useState("")
+    const [goal, setGoal] = useState("Minimize Visas")
+    const [loading, setLoading] = useState(false)
+    const [result, setResult] = useState<any>(null)
+
+    const mapContainer = useRef<HTMLDivElement>(null)
+    const map = useRef<maptilersdk.Map | null>(null)
+
+    useEffect(() => {
+        if (map.current || !mapContainer.current) return
+        maptilersdk.config.apiKey = process.env.NEXT_PUBLIC_MAPTILER_KEY || "dummy"
+        map.current = new maptilersdk.Map({
+            container: mapContainer.current as HTMLElement,
+            style: maptilersdk.MapStyle.STREETS,
+            center: [135, 35],
+            zoom: 3,
+            geolocateControl: false,
+        })
+        map.current.on('style.load', () => {
+        })
+    }, [])
+
+    const handleOptimize = async () => {
+        setLoading(true)
+        try {
+            const res = await fetch('/api/routes/optimize', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    passportCountry: defaultPassport,
+                    destinations,
+                    optimizationGoal: goal
+                })
+            })
+            const data = await res.json()
+            setResult(data)
+            // Map arc animation logic goes here in a real app
+        } catch (e) {
+            console.error(e)
+        } finally {
+            setLoading(false)
+        }
+    }
+
+    return (
+        <div className="absolute inset-0 flex">
+            {/* Left Panel */}
+            <div className="w-[400px] h-full bg-[#0D1627] border-r border-white/10 flex flex-col p-6 z-10 overflow-y-auto">
+                <div className="space-y-6">
+                    <div className="space-y-2">
+                        <label className="text-xs uppercase font-bold text-[#8892A4] tracking-wider">Passport</label>
+                        <div className="h-11 px-4 rounded-xl border border-white/10 bg-[#080B14] flex items-center text-sm">
+                            🇺🇸 {defaultPassport}
+                        </div>
+                    </div>
+
+                    <div className="space-y-3">
+                        <label className="text-xs uppercase font-bold text-[#8892A4] tracking-wider">Destinations</label>
+                        <div className="space-y-2">
+                            {destinations.map((dest, i) => (
+                                <div key={i} className="flex items-center gap-3 p-2 rounded-xl bg-white/5 border border-white/5 group">
+                                    <GripVertical className="w-4 h-4 text-[#8892A4] cursor-grab" />
+                                    <span className="flex-1 text-sm font-medium">{dest}</span>
+                                    <button
+                                        onClick={() => setDestinations(ds => ds.filter((_, idx) => idx !== i))}
+                                        className="p-1 text-[#8892A4] hover:text-white opacity-0 group-hover:opacity-100 transition-opacity"
+                                    >
+                                        <X className="w-4 h-4" />
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
+
+                        <div className="flex gap-2">
+                            <Input
+                                value={newDest}
+                                onChange={(e) => setNewDest(e.target.value)}
+                                placeholder="Add destination..."
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter' && newDest) {
+                                        setDestinations(d => [...d, newDest]); setNewDest('');
+                                    }
+                                }}
+                            />
+                            <Button variant="secondary" size="icon" onClick={() => { if (newDest) { setDestinations(d => [...d, newDest]); setNewDest(''); } }}>
+                                <Plus className="w-4 h-4" />
+                            </Button>
+                        </div>
+                    </div>
+
+                    <div className="space-y-3 pt-4 border-t border-white/10">
+                        <label className="text-xs uppercase font-bold text-[#8892A4] tracking-wider">Optimization Goal</label>
+                        <div className="grid grid-cols-1 gap-2">
+                            {['Minimize Visas', 'Minimize Cost', 'Minimize Time'].map(g => (
+                                <label key={g} className={`flex items-center gap-3 p-3 rounded-xl border transition-colors cursor-pointer ${goal === g ? 'bg-[#4F8EF7]/10 border-[#4F8EF7]/50' : 'bg-white/5 border-white/5 hover:bg-white/10'}`}>
+                                    <input type="radio" name="goal" value={g} checked={goal === g} onChange={() => setGoal(g)} className="sr-only" />
+                                    <Settings2 className={`w-4 h-4 ${goal === g ? 'text-[#4F8EF7]' : 'text-[#8892A4]'}`} />
+                                    <span className={`text-sm font-medium ${goal === g ? 'text-[#4F8EF7]' : 'text-white'}`}>{g}</span>
+                                </label>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+
+                <Button className="w-full mt-auto mt-8" size="lg" onClick={handleOptimize} disabled={loading || destinations.length < 2}>
+                    {loading ? <><Loader2 className="w-5 h-5 mr-2 animate-spin" /> Optimizing...</> : "Calculate Optimal Route"}
+                </Button>
+            </div>
+
+            {/* Right Panel: Map */}
+            <div className="flex-1 relative">
+                <div ref={mapContainer} className="absolute inset-0" />
+
+                {/* Results Panel */}
+                <AnimatePresence>
+                    {result && (
+                        <motion.div
+                            initial={{ y: "100%" }}
+                            animate={{ y: 0 }}
+                            exit={{ y: "100%" }}
+                            className="absolute bottom-0 left-0 right-0 h-64 bg-gradient-to-t from-[#080B14] via-[#080B14]/90 to-transparent p-6 flex flex-col justify-end z-20 pointer-events-none"
+                        >
+                            <div className="glass w-full max-w-4xl mx-auto rounded-2xl p-6 pointer-events-auto border-[#4F8EF7]/30 flex flex-col gap-4">
+                                <div className="flex justify-between items-start">
+                                    <div>
+                                        <h3 className="text-xl font-bold font-display">Optimization Complete</h3>
+                                        <p className="text-sm text-[#8892A4] mt-1 max-w-xl">{result.reasoning || "Route optimized successfully."}</p>
+                                    </div>
+                                    <div className="flex gap-3 text-sm">
+                                        <div className="bg-[#4F8EF7]/20 text-[#4F8EF7] px-3 py-1.5 rounded-lg font-medium border border-[#4F8EF7]/30">Visas: {result.summary?.totalVisasNeeded || 0}</div>
+                                        <div className="bg-emerald-500/20 text-emerald-400 px-3 py-1.5 rounded-lg font-medium border border-emerald-500/30">Cost: {result.summary?.totalEstimatedCost || "$0"}</div>
+                                    </div>
+                                </div>
+
+                                <div className="flex items-center gap-4 overflow-x-auto pb-2 mt-2">
+                                    {result.optimizedRoute?.map((stop: any, idx: number) => (
+                                        <div key={idx} className="flex items-center shrink-0">
+                                            <div className="w-8 h-8 rounded-full bg-[#161B27] border border-white/20 flex items-center justify-center font-bold text-xs z-10 shrink-0">
+                                                {idx + 1}
+                                            </div>
+                                            <div className="ml-[-12px] pl-5 pr-4 py-2 bg-white/5 rounded-xl border border-white/5 whitespace-nowrap min-w-[120px]">
+                                                <p className="font-bold text-sm tracking-wide">{stop.country}</p>
+                                                <p className="text-xs text-[#10B981] mt-0.5">{stop.entryType}</p>
+                                            </div>
+                                            {idx < result.optimizedRoute.length - 1 && (
+                                                <div className="w-8 h-0.5 bg-dashed mx-1 opacity-20" />
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+            </div>
+        </div>
+    )
+}

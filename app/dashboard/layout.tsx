@@ -8,11 +8,11 @@ export default async function DashboardLayout({ children, modal }: { children: R
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
 
-    let profile = null
+    let profile: { full_name: string; email: string; plan: string; } | null = null
     if (user) {
         const { data } = await supabase.from('profiles').select('full_name, plan').eq('id', user.id).single()
         profile = {
-            email: user.email,
+            email: user.email || "",
             full_name: data?.full_name || 'User',
             plan: data?.plan || 'free'
         }

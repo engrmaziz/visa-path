@@ -39,7 +39,7 @@ export async function POST(req: Request) {
         const validated = optimizeSchema.safeParse(body)
 
         if (!validated.success) {
-            return NextResponse.json({ error: 'Invalid input', details: validated.error.errors }, { status: 400 })
+            return NextResponse.json({ error: 'Invalid input', details: validated.error.format() }, { status: 400 })
         }
 
         const { passportCountry, destinations, optimizationGoal } = validated.data

@@ -1,36 +1,67 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# VisaPath
 
-## Getting Started
+VisaPath is a modern B2C SaaS platform that allows digital nomads, frequent travelers, and expats to optimize their visa strategies. By logging their citizenship(s), VisaPath calculates the best global access map, optimizes multi-country travel routes using AI, and tracks embassy appointments globally.
 
-First, run the development server:
+Built with an ultra-premium "dark glassmorphism" aesthetic, it utilizes modern server-side rendering, AI integration for trip generation, and robust authentication.
 
+## ✨ Features
+
+- **Global Access Mapping:** Interactive 3D map rendering your absolute best visa status across 195 destinations based on all your combined citizenships.
+- **AI Route Optimizer:** Input multi-country trip destinations and constraints; an LLM generates a mathematically optimized route, estimates visa costs, suggests transport, and plots the journey on an interactive path map.
+- **Embassy Tracker:** Searchable database to track embassy statuses to find booking portals or contact information.
+- **Multi-Passport Support:** Support for storing and cross-referencing multiple citizenships (e.g. Dual Citizens).
+- **Pro Tiering:** Paywalls restricting specific complex AI queries to Pro/Team users, strictly enforced via edge-rate limiting logic in the API.
+
+## 🛠️ Tech Stack
+
+- **Framework:** Next.js 15 (App Router, Turbopack)
+- **Styling:** Tailwind CSS + Framer Motion (Animations)
+- **Components:** Radix UI primitives & Lucide React (Icons)
+- **Database / Auth:** Supabase (PostgreSQL, Row Level Security)
+- **AI Engine:** Llama 3 (via Groq API)
+- **Map Engine:** MapTiler SDK
+
+## 🚀 Getting Started
+
+### Prerequisites
+
+You need Node.js and `pnpm` installed.
+
+### Environment Variables
+
+Copy the example file and fill in your keys:
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+cp .env.example .env.local
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+| Variable | Description |
+| ---- | ----------- |
+| `NEXT_PUBLIC_SUPABASE_URL` | Public API URL for your Supabase instance |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Public unprivileged API key for Supabase |
+| `SUPABASE_SERVICE_ROLE_KEY` | Server-only admin key for background job overriding RLS |
+| `GROQ_API_KEY` | API key for LLaMA 3 access via Groq to power Route Optimization |
+| `NEXT_PUBLIC_MAPTILER_KEY` | API key to render vector tiles for interactive world maps |
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Development
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Install the dependencies using `pnpm`:
 
-## Learn More
+```bash
+pnpm install
+```
 
-To learn more about Next.js, take a look at the following resources:
+Start the Turbopack development server:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+pnpm run dev
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+The app will be running at [http://localhost:3000](http://localhost:3000).
 
-## Deploy on Vercel
+## 🗄️ Database Schema
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+The core Supabase Schema revolves around:
+- `profiles` – Extended user metadata tied to `auth.users`, tracks `plan` tier.
+- `user_passports` – 1-to-many relationship of a user ID mapping to country codes (e.g., USA, GBR).
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+*RLS (Row Level Security)* heavily secures these tables ensuring users can only read, insert, or delete their distinct rows.

@@ -32,8 +32,8 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en">
-      <body className={`${inter.variable} ${display.variable} antialiased bg-[#080B14] text-white selection:bg-[#4F8EF7] selection:text-white`}>
+    <html lang="en" suppressHydrationWarning>
+      <body className={`${inter.variable} ${display.variable} antialiased bg-[#080B14] text-white selection:bg-[#4F8EF7] selection:text-white`} suppressHydrationWarning>
         {children}
         <Analytics />
         <SpeedInsights />

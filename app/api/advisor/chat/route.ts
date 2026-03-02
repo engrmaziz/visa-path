@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { geminiModel } from '@/lib/gemini'
+import { groq } from '@/lib/gemini'
 import { createClient } from '@/lib/supabase/server'
 import { proRatelimit, freeRatelimit } from '@/lib/ratelimit'
 
@@ -20,29 +20,30 @@ export async function POST(req: Request) {
         const { messages } = await req.json()
         const systemPrompt = "You are VisaPath AI, an expert immigration and travel intelligence assistant. You have comprehensive knowledge of global visa policies, passport rankings, immigration pathways, residency by investment programs, digital nomad visas, and travel route optimization. Always be specific, cite realistic timeframes and costs, and format responses clearly. When listing countries or steps, use structured formatting. Be helpful, warm, and empowering — you are helping people access freedom."
 
-        // Construct history for Gemini
+        // Construct history for Groq
         const history = messages.slice(0, -1).map((m: any) => ({
-            role: m.role === 'user' ? 'user' : 'model',
-            parts: [{ text: m.content }]
+            role: m.role === 'user' ? 'user' : 'assistant',
+            content: m.content
         }))
 
         const latestMessage = messages[messages.length - 1].content
 
-        const chat = geminiModel.startChat({
-            history: [
-                { role: 'user', parts: [{ text: systemPrompt }] },
-                { role: 'model', parts: [{ text: "Understood. I am VisaPath AI, ready to assist." }] },
-                ...history
-            ]
+        const stream = await groq.chat.completions.create({
+            model: "llama-3.3-70b-versatile",
+            messages: [
+                { role: 'system', content: systemPrompt },
+                ...history,
+                { role: 'user', content: latestMessage }
+            ],
+            stream: true,
+            temperature: 0.7,
         })
 
-        const result = await chat.sendMessageStream(latestMessage)
-
-        // Convert Gemini stream to web standard ReadableStream
+        // Convert Groq stream to web standard ReadableStream
         const readableStream = new ReadableStream({
             async start(controller) {
-                for await (const chunk of result.stream) {
-                    const chunkText = chunk.text()
+                for await (const chunk of stream) {
+                    const chunkText = chunk.choices[0]?.delta?.content || ""
                     if (chunkText) {
                         controller.enqueue(new TextEncoder().encode(chunkText))
                     }

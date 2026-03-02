@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import { proRatelimit, freeRatelimit } from '@/lib/ratelimit'
 import { createClient } from '@/lib/supabase/server'
-import { geminiModel, buildRouteOptimizerPrompt } from '@/lib/gemini'
+import { groq, buildRouteOptimizerPrompt } from '@/lib/gemini'
 
 const optimizeSchema = z.object({
     passportCountry: z.string().min(2),
@@ -45,8 +45,12 @@ export async function POST(req: Request) {
         const { passportCountry, destinations, optimizationGoal } = validated.data
 
         const prompt = buildRouteOptimizerPrompt(passportCountry, destinations, optimizationGoal)
-        const result = await geminiModel.generateContent(prompt)
-        const responseText = result.response.text()
+        const completion = await groq.chat.completions.create({
+            model: "llama-3.3-70b-versatile",
+            messages: [{ role: "user", content: prompt }],
+            temperature: 0.7,
+        })
+        const responseText = completion.choices[0]?.message?.content || ""
 
         // Clean markdown JSON delimiters if present
         const jsonStr = responseText.replace(/```json/g, '').replace(/```/g, '').trim()

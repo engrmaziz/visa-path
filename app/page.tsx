@@ -9,7 +9,7 @@ import { Footer } from "@/components/landing/footer"
 
 export default function LandingPage() {
   return (
-    <main className="min-h-screen bg-[var(--color-bg)] w-full overflow-hidden text-[var(--color-text-primary)] selection:bg-[var(--color-primary)] selection:text-white">
+    <main className="min-h-screen bg-[var(--color-bg)] w-full overflow-hidden text-[var(--color-text-primary)] selection:bg-[var(--color-primary)] selection:text-white" suppressHydrationWarning>
       <Navbar />
       <Hero />
       <Features />

@@ -27,6 +27,7 @@ export function VisaMap({ passports = ['USA'] }: VisaMapProps) {
             center: [10, 30],
             zoom: 1.5,
             geolocateControl: false,
+            renderWorldCopies: false, // Fix repeating issue
         })
 
         // Add popup instance
@@ -44,8 +45,9 @@ export function VisaMap({ passports = ['USA'] }: VisaMapProps) {
                     // Enrich GeoJSON with visa status based on selected passports
                     data.features.forEach((feature: any) => {
                         const destCode = feature.properties.ISO_A3
-                        const status = getCombinedVisaStatus(passports, destCode)
-                        feature.properties.visa_status = status
+                        const combinedData = getCombinedVisaStatus(passports, destCode)
+                        feature.properties.visa_status = combinedData.status
+                        feature.properties.visa_breakdown = JSON.stringify(combinedData.breakdown)
                         feature.properties.country_name = feature.properties.ADMIN
                     })
 
@@ -117,22 +119,35 @@ export function VisaMap({ passports = ['USA'] }: VisaMapProps) {
 
                             // Show Popup
                             const countryName = e.features[0].properties?.country_name
-                            const status = e.features[0].properties?.visa_status
 
-                            let statusText = "Visa Required"
-                            let statusColor = "text-red-400"
-                            if (status === 'visa-free') {
-                                statusText = "Visa Free"
-                                statusColor = "text-emerald-400"
-                            } else if (status === 'evisa') {
-                                statusText = "e-Visa / VOA"
-                                statusColor = "text-amber-400"
+                            let breakdownObj: Record<string, string> = {}
+                            try {
+                                breakdownObj = JSON.parse(e.features[0].properties?.visa_breakdown || "{}")
+                            } catch (err) { }
+
+                            let breakdownHtml = ""
+                            Object.entries(breakdownObj).forEach(([passport, status]) => {
+                                let statusText = "Visa Required"
+                                let statusColor = "text-red-400"
+                                if (status === 'visa-free') {
+                                    statusText = "Visa Free"
+                                    statusColor = "text-emerald-400"
+                                } else if (status === 'evisa') {
+                                    statusText = "e-Visa / VOA"
+                                    statusColor = "text-amber-400"
+                                }
+
+                                breakdownHtml += `<p class="text-[11px] font-semibold flex justify-between gap-4 mt-1"><span class="${statusColor} uppercase tracking-wider">${statusText}</span> <span class="text-[#8892A4]">(${passport})</span></p>`
+                            })
+
+                            if (!breakdownHtml) {
+                                breakdownHtml = `<p class="text-[11px] font-semibold text-red-400 uppercase tracking-wider mt-1">Visa Required</p>`
                             }
 
                             const popupHtml = `
-                                <div class="bg-[#080B14] border border-white/10 rounded-xl p-3 shadow-xl min-w-[120px]">
-                                    <h4 class="font-bold text-white text-sm mb-1">${countryName}</h4>
-                                    <p class="text-xs font-semibold uppercase tracking-wider ${statusColor}">${statusText}</p>
+                                <div class="bg-[#080B14] border border-white/10 rounded-xl p-3 shadow-xl min-w-[140px]">
+                                    <h4 class="font-bold text-white text-sm mb-2 pb-2 border-b border-white/10">${countryName}</h4>
+                                    ${breakdownHtml}
                                 </div>
                             `
 
@@ -203,7 +218,7 @@ export function VisaMap({ passports = ['USA'] }: VisaMapProps) {
                     </div>
                 </div>
             )}
-            <div ref={mapContainer} className="w-full h-full" />
+            <div ref={mapContainer} className="w-full h-full bg-[#080B14]" />
         </div>
     )
 }

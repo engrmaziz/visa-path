@@ -7,26 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { addPassport } from "@/actions/passport"
 
-const COUNTRIES = [
-    { code: "USA", name: "United States" },
-    { code: "CAN", name: "Canada" },
-    { code: "GBR", name: "United Kingdom" },
-    { code: "AUS", name: "Australia" },
-    { code: "NZL", name: "New Zealand" },
-    { code: "JPN", name: "Japan" },
-    { code: "SGP", name: "Singapore" },
-    { code: "ZAF", name: "South Africa" },
-    { code: "IND", name: "India" },
-    { code: "BRA", name: "Brazil" },
-    { code: "CHN", name: "China" },
-    { code: "DEU", name: "Germany" },
-    { code: "FRA", name: "France" },
-    { code: "ITA", name: "Italy" },
-    { code: "ESP", name: "Spain" },
-    { code: "MEX", name: "Mexico" },
-    { code: "ARE", name: "United Arab Emirates" },
-    { code: "ARG", name: "Argentina" },
-]
+import { COUNTRIES } from "@/lib/countries"
 
 export function AddPassportButton() {
     const [isOpen, setIsOpen] = useState(false)

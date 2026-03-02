@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import * as maptilersdk from "@maptiler/sdk"
 import "@maptiler/sdk/dist/maptiler-sdk.css"
+import { COUNTRIES } from "@/lib/countries"
 
 interface RoutePlannerProps {
     defaultPassport: string
@@ -89,6 +90,7 @@ export function RoutePlannerView({ defaultPassport }: RoutePlannerProps) {
 
                         <div className="flex gap-2">
                             <Input
+                                list="countries-list"
                                 value={newDest}
                                 onChange={(e) => setNewDest(e.target.value)}
                                 placeholder="Add destination..."
@@ -98,6 +100,11 @@ export function RoutePlannerView({ defaultPassport }: RoutePlannerProps) {
                                     }
                                 }}
                             />
+                            <datalist id="countries-list">
+                                {COUNTRIES.map(c => (
+                                    <option key={c.code} value={c.name} />
+                                ))}
+                            </datalist>
                             <Button variant="secondary" size="icon" onClick={() => { if (newDest) { setDestinations(d => [...d, newDest]); setNewDest(''); } }}>
                                 <Plus className="w-4 h-4" />
                             </Button>
@@ -169,9 +176,9 @@ export function RoutePlannerView({ defaultPassport }: RoutePlannerProps) {
                                                     <span className={`text-[11px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-sm ${stop.visaStatus?.toLowerCase().includes('free') ? 'bg-[#10B981]/10 text-[#10B981]' : stop.visaStatus?.toLowerCase().includes('req') ? 'bg-[#EF4444]/10 text-[#EF4444]' : 'bg-[#F59E0B]/10 text-[#F59E0B]'}`}>
                                                         {stop.visaStatus}
                                                     </span>
-                                                    <span className="text-xs text-[#8892A4] font-medium">{stop.duration}</span>
+                                                    <span className="text-xs text-[#8892A4] font-medium">${stop.estimatedCost || 0}</span>
                                                 </div>
-                                                <div className="bg-[#080B14] rounded-lg p-2.5 mt-3 border border-white/5">
+                                                <div className="bg-[#080B14] rounded-lg p-2.5 mt-3 border border-white/5 h-full overflow-y-auto">
                                                     <p className="text-xs text-[#8892A4] leading-relaxed"><strong className="text-white">Tip:</strong> {stop.tips}</p>
                                                 </div>
                                             </div>

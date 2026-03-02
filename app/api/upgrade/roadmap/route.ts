@@ -30,7 +30,7 @@ export async function POST(req: Request) {
         const body = await req.json()
         const validated = roadmapSchema.safeParse(body)
 
-        if (!validated.success) return NextResponse.json({ error: 'Invalid input', details: validated.error.errors }, { status: 400 })
+        if (!validated.success) return NextResponse.json({ error: 'Invalid input', details: validated.error.issues }, { status: 400 })
 
         const { currentPassport, goal } = validated.data
 

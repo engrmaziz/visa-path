@@ -1,12 +1,12 @@
 import type { NextConfig } from "next";
+import withPWA from "@ducanh2912/next-pwa";
 
-const withPWA = require("next-pwa")({
-  dest: 'public',
-  disable: process.env.NODE_ENV === 'development',
+const pwaConfig = withPWA({
+  dest: "public",
+  disable: process.env.NODE_ENV === "development",
 });
 
 const nextConfig: NextConfig = {
-  turbopack: { root: __dirname },
   images: {
     remotePatterns: [
       { protocol: 'https', hostname: '**' }
@@ -26,4 +26,4 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default withPWA(nextConfig);
+export default pwaConfig(nextConfig);

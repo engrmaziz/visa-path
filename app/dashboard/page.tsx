@@ -47,7 +47,7 @@ export default async function DashboardPage() {
                 </div>
 
                 <div className="flex-1 w-full rounded-2xl relative">
-                    <VisaMap passports={passports.map(p => p.country_code).length > 0 ? passports.map(p => p.country_code) : ['USA']} />
+                    <VisaMap passports={passports.map(p => p.country_code)} />
                 </div>
             </div>
         </div>

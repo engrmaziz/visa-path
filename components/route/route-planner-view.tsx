@@ -2,18 +2,26 @@
 
 import { useState, useRef, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { Plus, GripVertical, Settings2, MapPin, X, Loader2, Save } from "lucide-react"
+import { Plus, GripVertical, Settings2, MapPin, X, Loader2, Save, ChevronDown } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import * as maptilersdk from "@maptiler/sdk"
 import "@maptiler/sdk/dist/maptiler-sdk.css"
 import { COUNTRIES } from "@/lib/countries"
 
-interface RoutePlannerProps {
-    defaultPassport: string
+interface PassportOption {
+    country_code: string
+    country_name: string
 }
 
-export function RoutePlannerView({ defaultPassport }: RoutePlannerProps) {
+interface RoutePlannerProps {
+    passports: PassportOption[]
+}
+
+export function RoutePlannerView({ passports }: RoutePlannerProps) {
+    const [selectedPassport, setSelectedPassport] = useState<string>(
+        passports.length > 0 ? passports[0].country_code : ""
+    )
     const [destinations, setDestinations] = useState(["Japan", "South Korea"])
     const [newDest, setNewDest] = useState("")
     const [goal, setGoal] = useState("Minimize Visas")
@@ -22,6 +30,12 @@ export function RoutePlannerView({ defaultPassport }: RoutePlannerProps) {
 
     const mapContainer = useRef<HTMLDivElement>(null)
     const map = useRef<maptilersdk.Map | null>(null)
+
+    useEffect(() => {
+        if (passports.length > 0 && !selectedPassport) {
+            setSelectedPassport(passports[0].country_code)
+        }
+    }, [passports, selectedPassport])
 
     useEffect(() => {
         if (map.current || !mapContainer.current) return
@@ -44,7 +58,7 @@ export function RoutePlannerView({ defaultPassport }: RoutePlannerProps) {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    passportCountry: defaultPassport,
+                    passportCountry: selectedPassport,
                     destinations,
                     optimizationGoal: goal
                 })
@@ -59,6 +73,8 @@ export function RoutePlannerView({ defaultPassport }: RoutePlannerProps) {
         }
     }
 
+    const selectedPassportName = passports.find(p => p.country_code === selectedPassport)?.country_name ?? selectedPassport
+
     return (
         <div className="absolute inset-0 flex">
             {/* Left Panel */}
@@ -66,9 +82,26 @@ export function RoutePlannerView({ defaultPassport }: RoutePlannerProps) {
                 <div className="space-y-6">
                     <div className="space-y-2">
                         <label className="text-xs uppercase font-bold text-[#8892A4] tracking-wider">Passport</label>
-                        <div className="h-11 px-4 rounded-xl border border-white/10 bg-[#080B14] flex items-center text-sm">
-                            🇺🇸 {defaultPassport}
-                        </div>
+                        {passports.length > 0 ? (
+                            <div className="relative">
+                                <select
+                                    value={selectedPassport}
+                                    onChange={(e) => setSelectedPassport(e.target.value)}
+                                    className="w-full h-11 px-4 pr-10 rounded-xl border border-white/10 bg-[#080B14] text-sm text-white appearance-none cursor-pointer focus:outline-none focus:border-[#4F8EF7]/50"
+                                >
+                                    {passports.map((p) => (
+                                        <option key={p.country_code} value={p.country_code} className="bg-[#080B14]">
+                                            {p.country_name} ({p.country_code})
+                                        </option>
+                                    ))}
+                                </select>
+                                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#8892A4] pointer-events-none" />
+                            </div>
+                        ) : (
+                            <div className="h-11 px-4 rounded-xl border border-white/10 bg-[#080B14] flex items-center text-sm text-[#8892A4]">
+                                No passports added yet
+                            </div>
+                        )}
                     </div>
 
                     <div className="space-y-3">
@@ -125,7 +158,7 @@ export function RoutePlannerView({ defaultPassport }: RoutePlannerProps) {
                     </div>
                 </div>
 
-                <Button className="w-full mt-auto mt-8" size="lg" onClick={handleOptimize} disabled={loading || destinations.length < 2}>
+                <Button className="w-full mt-auto mt-8" size="lg" onClick={handleOptimize} disabled={loading || destinations.length < 2 || !selectedPassport}>
                     {loading ? <><Loader2 className="w-5 h-5 mr-2 animate-spin" /> Optimizing...</> : "Calculate Optimal Route"}
                 </Button>
             </div>

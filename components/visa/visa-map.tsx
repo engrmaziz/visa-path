@@ -10,7 +10,7 @@ interface VisaMapProps {
     passports?: string[]
 }
 
-export function VisaMap({ passports = ['USA'] }: VisaMapProps) {
+export function VisaMap({ passports = [] }: VisaMapProps) {
     const mapContainer = useRef<HTMLDivElement>(null)
     const map = useRef<maptilersdk.Map | null>(null)
     const router = useRouter()

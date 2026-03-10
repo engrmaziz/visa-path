@@ -1,8 +1,19 @@
+import { createClient } from "@/lib/supabase/server"
 import { RoutePlannerView } from "@/components/route/route-planner-view"
 
-export default function RoutesPage() {
-    // In a real app, we'd fetch the user's default passport here.
-    const defaultPassport = "USA"
+export default async function RoutesPage() {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    let passports: { country_code: string; country_name: string }[] = []
+    if (user) {
+        const { data } = await supabase
+            .from('user_passports')
+            .select('country_code, country_name')
+            .eq('user_id', user.id)
+            .order('created_at', { ascending: true })
+        if (data) passports = data
+    }
 
     return (
         <div className="h-full flex flex-col -m-6 lg:-m-10">
@@ -12,7 +23,7 @@ export default function RoutesPage() {
             </div>
 
             <div className="flex-1 min-h-0 mt-6 relative">
-                <RoutePlannerView defaultPassport={defaultPassport} />
+                <RoutePlannerView passports={passports} />
             </div>
         </div>
     )
